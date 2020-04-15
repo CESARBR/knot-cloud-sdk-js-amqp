@@ -2,9 +2,15 @@ import AMQP from './network/AMQP';
 
 // Based on websocket interface: https://github.com/CESARBR/knot-cloud-websocket#methods
 export default class Client {
-  constructor(config) {
+  constructor(config = {}) {
     this.headers = { Authorization: config.token };
-    this.amqp = new AMQP(config);
+    this.amqp = new AMQP({
+      hostname: 'localhost',
+      port: 5672,
+      username: 'knot',
+      password: 'knot',
+      ...config,
+    });
   }
 
   async connect() {
