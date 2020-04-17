@@ -56,7 +56,7 @@ export default class Client {
     this.amqp.publishMessage('connOut', 'data.update', msg, this.headers);
   }
 
-  on(event, callback) {
+  on(event, callback, options) {
     let exchange;
     let routingKeys;
 
@@ -77,6 +77,6 @@ export default class Client {
     }
 
     const queue = `client-${exchange}-${event}`;
-    this.amqp.subscribeTo(exchange, routingKeys, queue, callback);
+    return this.amqp.subscribeTo(exchange, routingKeys, queue, callback, options);
   }
 }
