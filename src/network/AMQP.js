@@ -21,23 +21,32 @@ export default class AMQP {
     await this.connection.close();
   }
 
-  declareExchange(exchange) {
-    this.channel.assertExchange(exchange, 'topic', { durable: true });
+  async declareExchange(exchange, type = 'topic', options = { durable: true }) {
+    await this.channel.assertExchange(exchange, type, options);
   }
 
-  bindQueue(queue, exchange, routingKey) {
-    this.channel.assertQueue(queue, { durable: true });
-    this.channel.bindQueue(queue, exchange, routingKey);
+  async bindQueue(queue, exchange, routingKey) {
+    await this.channel.assertQueue(queue, { durable: true });
+    await this.channel.bindQueue(queue, exchange, routingKey);
   }
 
-  publishMessage(exchange, routingKey, message, headers) {
-    this.declareExchange(exchange);
+  async deleteQueue(queue) {
+    await this.channel.deleteQueue(queue);
+  }
+
+  async publishMessage(exchange, routingKey, message, headers) {
+    await this.declareExchange(exchange);
     this.channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(message)), { headers });
   }
 
-  subscribeTo(exchange, routingKeys, queue, onMessage) {
-    this.declareExchange(exchange);
-    routingKeys.forEach((key) => this.bindQueue(queue, exchange, key));
-    this.channel.consume(queue, (msg) => onMessage(JSON.parse(msg.content.toString())));
+  async subscribeTo(exchange, routingKeys, queue, onMessage, options) {
+    const callback = (msg) => onMessage(JSON.parse(msg.content.toString()));
+    await this.declareExchange(exchange);
+    await Promise.all(routingKeys.map((key) => this.bindQueue(queue, exchange, key)));
+    return this.channel.consume(queue, callback, options);
+  }
+
+  async unsubscribeConsumer(consumer) {
+    return this.channel.cancel(consumer);
   }
 }
