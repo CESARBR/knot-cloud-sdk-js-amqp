@@ -4,7 +4,6 @@ import * as api from './config/api';
 // Based on websocket interface: https://github.com/CESARBR/knot-cloud-websocket#methods
 export default class Client {
   constructor(config = {}) {
-    this.headers = { Authorization: config.token };
     this.amqp = new AMQP({
       hostname: 'localhost',
       port: 5672,
@@ -12,6 +11,10 @@ export default class Client {
       password: 'knot',
       ...config,
     });
+    this.headers = { Authorization: config.token };
+    this.events = {
+      data: api.PUBLISH_DATA,
+    };
   }
 
   subscribeToResponse(resolve, reject, routingKey) {
@@ -90,18 +93,10 @@ export default class Client {
   }
 
   on(event, callback, options) {
-    let exchange;
-    let routingKeys;
-
-    switch (event) {
-      case 'data':
-        exchange = 'fogIn';
-        routingKeys = ['data.publish'];
-        break;
-      default:
-    }
+    const routingKey = this.events[event];
+    const exchange = api.getExchange(routingKey);
 
     const queue = `client-${exchange}-${event}`;
-    return this.amqp.subscribeTo(exchange, routingKeys, queue, callback, options);
+    return this.amqp.subscribeTo(exchange, routingKey, queue, callback, options);
   }
 }
