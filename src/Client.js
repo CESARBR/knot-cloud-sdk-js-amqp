@@ -14,6 +14,8 @@ export default class Client {
     this.headers = { Authorization: config.token };
     this.events = {
       data: api.PUBLISH_DATA,
+      getData: api.REQUEST_DATA,
+      setData: api.UPDATE_DATA,
     };
   }
 
