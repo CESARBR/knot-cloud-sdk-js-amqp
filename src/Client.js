@@ -21,12 +21,12 @@ export default class Client {
 
   subscribeToResponse(resolve, reject, routingKey) {
     const exchange = api.getExchange(routingKey);
-    const queue = `client-${exchange}-${routingKey}`;
-    const consumerTag = `consumer-${exchange}-${routingKey}`;
+    const randomNumber = Math.trunc(Math.random() * 1e10);
+    const queue = `temporary-${randomNumber}`;
+    const consumerTag = `consumer-${randomNumber}`;
 
     const handleResponse = async ({ error, ...message }) => {
       await this.amqp.unsubscribeConsumer(consumerTag);
-      await this.amqp.deleteQueue(queue);
       if (error) {
         reject(Error(error));
       } else {
@@ -40,14 +40,12 @@ export default class Client {
   async sendRequest(routingKey, message) {
     const exchange = api.getExchange(routingKey);
     const responseKey = api.getResponseKey(routingKey);
-
     if (responseKey) {
       return new Promise((resolve, reject) => {
         this.subscribeToResponse(resolve, reject, responseKey);
         this.amqp.publishMessage(exchange, routingKey, message, this.headers);
       });
     }
-
     return this.amqp.publishMessage(exchange, routingKey, message, this.headers);
   }
 
