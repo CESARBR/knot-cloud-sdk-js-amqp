@@ -27,11 +27,13 @@ export default class Client {
     const consumerTag = `consumer-${randomNumber}`;
 
     const handleResponse = async ({ error, ...message }) => {
-      await this.amqp.unsubscribeConsumer(consumerTag);
-      if (error) {
-        reject(Error(error));
-      } else {
-        resolve(message);
+      if (message.id === msg.id) {
+        await this.amqp.unsubscribeConsumer(consumerTag);
+        if (error) {
+          reject(Error(error));
+        } else {
+          resolve(message);
+        }
       }
     };
 
