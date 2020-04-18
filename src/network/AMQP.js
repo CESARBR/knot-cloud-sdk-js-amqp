@@ -26,12 +26,8 @@ export default class AMQP {
   }
 
   async bindQueue(queue, exchange, routingKey) {
-    await this.channel.assertQueue(queue, { durable: true });
+    await this.channel.assertQueue(queue, { exclusive: true, autoDelete: true });
     await this.channel.bindQueue(queue, exchange, routingKey);
-  }
-
-  async deleteQueue(queue) {
-    await this.channel.deleteQueue(queue);
   }
 
   async publishMessage(exchange, routingKey, message, headers) {
