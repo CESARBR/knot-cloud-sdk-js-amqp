@@ -19,8 +19,9 @@ export default class Client {
     };
   }
 
-  subscribeToResponse(resolve, reject, routingKey) {
-    const exchange = api.getExchange(routingKey);
+  async subscribeToResponse(resolve, reject, reqKey, resKey, msg) {
+    const reqExchange = api.getExchange(reqKey);
+    const resExchange = api.getExchange(resKey);
     const randomNumber = Math.trunc(Math.random() * 1e10);
     const queue = `temporary-${randomNumber}`;
     const consumerTag = `consumer-${randomNumber}`;
@@ -34,18 +35,18 @@ export default class Client {
       }
     };
 
-    this.amqp.subscribeTo(exchange, routingKey, queue, handleResponse, { consumerTag });
+    await this.amqp.subscribeTo(resExchange, resKey, queue, handleResponse, { consumerTag });
+    await this.amqp.publishMessage(reqExchange, reqKey, msg, this.headers);
   }
 
   async sendRequest(routingKey, message) {
-    const exchange = api.getExchange(routingKey);
     const responseKey = api.getResponseKey(routingKey);
     if (responseKey) {
       return new Promise((resolve, reject) => {
-        this.subscribeToResponse(resolve, reject, responseKey);
-        this.amqp.publishMessage(exchange, routingKey, message, this.headers);
+        this.subscribeToResponse(resolve, reject, routingKey, responseKey, message);
       });
     }
+    const exchange = api.getExchange(routingKey);
     return this.amqp.publishMessage(exchange, routingKey, message, this.headers);
   }
 
