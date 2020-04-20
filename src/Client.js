@@ -95,11 +95,13 @@ export default class Client {
     return this.sendRequest(api.UPDATE_DATA, msg);
   }
 
-  on(event, callback, options) {
-    const routingKey = this.events[event];
-    const exchange = api.getExchange(routingKey);
-
-    const queue = `client-${exchange}-${event}`;
-    return this.amqp.subscribeTo(exchange, routingKey, queue, callback, options);
+  async on(event, callback, options) {
+    if (Object.keys(this.events).includes(event)) {
+      const routingKey = this.events[event];
+      const exchange = api.getExchange(routingKey);
+      const queue = `client-${exchange}-${event}`;
+      return this.amqp.subscribeTo(exchange, routingKey, queue, callback, options);
+    }
+    return Error('Event not recognized!');
   }
 }
