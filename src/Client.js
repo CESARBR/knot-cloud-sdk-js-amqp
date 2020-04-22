@@ -105,4 +105,18 @@ export default class Client {
     }
     return Error('Event not recognized!');
   }
+
+  async once(event, callback, options = {}) {
+    if (Object.keys(this.events).includes(event)) {
+      const routingKey = this.events[event];
+      const exchange = api.getExchange(routingKey);
+      const queue = `${event}-${this.userKey}`;
+      const consumerTag = uniqid.time(`${queue}-`);
+      return this.amqp.subscribeTo(exchange, routingKey, queue, async (msg) => {
+        this.amqp.unsubscribeConsumer(consumerTag);
+        callback(msg);
+      }, { ...options, consumerTag });
+    }
+    return Error('Event not recognized!');
+  }
 }
