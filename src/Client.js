@@ -17,14 +17,15 @@ export default class Client {
       getData: api.REQUEST_DATA,
       setData: api.UPDATE_DATA,
     };
+    this.userKey = Math.trunc(Math.random() * 1e10);
   }
 
   async subscribeToResponse(resolve, reject, reqKey, resKey, msg) {
     const reqExchange = api.getExchange(reqKey);
     const resExchange = api.getExchange(resKey);
-    const randomNumber = Math.trunc(Math.random() * 1e10);
-    const queue = `temporary-${randomNumber}`;
-    const consumerTag = `consumer-${randomNumber}`;
+    const queue = `${resKey}-${this.userKey}`;
+    const randomNumber = Math.trunc(Math.random() * 1e5);
+    const consumerTag = `${queue}-${randomNumber}`;
 
     const handleResponse = async ({ error, ...message }) => {
       if (message.id === msg.id) {
@@ -99,7 +100,7 @@ export default class Client {
     if (Object.keys(this.events).includes(event)) {
       const routingKey = this.events[event];
       const exchange = api.getExchange(routingKey);
-      const queue = `client-${exchange}-${event}`;
+      const queue = `${event}-${this.userKey}`;
       return this.amqp.subscribeTo(exchange, routingKey, queue, callback, options);
     }
     return Error('Event not recognized!');
