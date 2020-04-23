@@ -1,3 +1,4 @@
+import uniqid from 'uniqid';
 import AMQP from './network/AMQP';
 import * as api from './config/api';
 
@@ -17,15 +18,14 @@ export default class Client {
       getData: api.REQUEST_DATA,
       setData: api.UPDATE_DATA,
     };
-    this.userKey = Math.trunc(Math.random() * 1e10);
+    this.userKey = uniqid();
   }
 
   async subscribeToResponse(resolve, reject, reqKey, resKey, msg) {
     const reqExchange = api.getExchange(reqKey);
     const resExchange = api.getExchange(resKey);
     const queue = `${resKey}-${this.userKey}`;
-    const randomNumber = Math.trunc(Math.random() * 1e5);
-    const consumerTag = `${queue}-${randomNumber}`;
+    const consumerTag = uniqid.time(`${queue}-`);
 
     const handleResponse = async ({ error, ...message }) => {
       if (message.id === msg.id) {
