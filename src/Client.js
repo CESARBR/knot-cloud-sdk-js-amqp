@@ -101,7 +101,10 @@ export default class Client {
       const routingKey = this.events[event];
       const exchange = api.getExchange(routingKey);
       const queue = `${event}-${this.userKey}`;
-      return this.amqp.subscribeTo(exchange, routingKey, queue, callback, options);
+      return this.amqp.subscribeTo(exchange, routingKey, queue, (msg) => {
+        const { error, ...message } = msg;
+        callback(error, message);
+      }, options);
     }
     return Error('Event not recognized!');
   }
@@ -114,7 +117,8 @@ export default class Client {
       const consumerTag = uniqid.time(`${queue}-`);
       return this.amqp.subscribeTo(exchange, routingKey, queue, async (msg) => {
         this.amqp.unsubscribeConsumer(consumerTag);
-        callback(msg);
+        const { error, ...message } = msg;
+        callback(error, message);
       }, { ...options, consumerTag });
     }
     return Error('Event not recognized!');
