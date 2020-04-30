@@ -60,8 +60,7 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at
-[INSERT CONTACT METHOD].
-All complaints will be reviewed and investigated promptly and fairly.
+[Slack Workspace](https://join.slack.com/t/knot-iot/shared_invite/enQtNjkxMDI3MTgyNzQzLTU5NDY3ZmU3OGZjMGZhMmZiMzk1ZWY4OTA2NGRiNDJhY2M5MmY3YWM5MmEzYTc3NWJiNTczY2JjYzIyZjBhYjc). All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
 reporter of any incident.
