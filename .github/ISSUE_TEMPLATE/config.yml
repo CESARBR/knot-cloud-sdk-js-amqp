@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🐛 Bug Report
+    url: https://github.com/CESARBR/knot-cloud-sdk-js-amqp/issues/new?labels=bug&template=BUG_REPORT.md
+    about: Report a bug or unexpected behavior.
+  - name: ⭐ Feature Request
+    url: https://github.com/CESARBR/knot-cloud-sdk-js-amqp/issues/new?labels=enhancement&template=FEATURE_REQUEST.md
+    about: Surface a feature or problem that you think should be solved.
