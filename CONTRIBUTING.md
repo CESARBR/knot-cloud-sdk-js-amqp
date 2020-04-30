@@ -17,7 +17,7 @@ This project and everyone participating in it is governed by the [Contributor Co
 
 ## Issue Reporting Guidelines
 
-The issue list is reserved exclusively for bug reports and feature requests. For usage questions, please use the following resources:1
+The issue list is reserved exclusively for [bug reports](.github/ISSUE_TEMPLATE/BUG_REPORT.md) and [feature requests](.github/ISSUE_TEMPLATE/FEATURE_REQUEST.md). For usage questions, please use the following resources:
 
 - Read the [docs](https://knot-devel.cesar.org.br)
 - Ask on our [Slack workspace](https://join.slack.com/t/knot-iot/shared_invite/enQtNjkxMDI3MTgyNzQzLTU5NDY3ZmU3OGZjMGZhMmZiMzk1ZWY4OTA2NGRiNDJhY2M5MmY3YWM5MmEzYTc3NWJiNTczY2JjYzIyZjBhYjc)
