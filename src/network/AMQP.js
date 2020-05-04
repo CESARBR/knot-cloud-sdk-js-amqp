@@ -21,7 +21,7 @@ export default class AMQP {
     await this.connection.close();
   }
 
-  async declareExchange(exchange, type = 'topic', options = { durable: true }) {
+  async declareExchange(exchange, type, options = { durable: true }) {
     await this.channel.assertExchange(exchange, type, options);
   }
 
@@ -30,14 +30,14 @@ export default class AMQP {
     await this.channel.bindQueue(queue, exchange, routingKey);
   }
 
-  async publishMessage(exchange, routingKey, message, headers) {
-    await this.declareExchange(exchange);
+  async publishMessage(exchange, type, routingKey, message, headers) {
+    await this.declareExchange(exchange, type);
     this.channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(message)), { headers });
   }
 
-  async subscribeTo(exchange, routingKey, queue, onMessage, options) {
+  async subscribeTo(exchange, type, routingKey, queue, onMessage, options) {
     const callback = (msg) => onMessage(JSON.parse(msg.content.toString()));
-    await this.declareExchange(exchange);
+    await this.declareExchange(exchange, type);
     await this.bindQueue(queue, exchange, routingKey);
     return this.channel.consume(queue, callback, options);
   }

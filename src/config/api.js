@@ -42,11 +42,11 @@ const responses = {
   [UPDATE_SCHEMA]: UPDATE_SCHEMA_RESPONSE,
 };
 
-export const getExchange = (key) => {
-  const [name] = Object
+export const getDefinitionByKey = (key) => {
+  const [name, args] = Object
     .entries(requestExchanges)
     .find(([, obj]) => obj.keys.includes(key)) || [];
-  return name;
+  return { name, type: args.type, key };
 };
 
 export const getResponseKey = (key) => responses[key];
