@@ -91,17 +91,19 @@ export default class Client {
 
   async publishData(id, dataList) {
     const msg = { id, data: dataList };
-    return this.sendRequest(api.PUBLISH_DATA, msg);
+    return this.amqp.publishMessage(api.DATA_SENT_EXCHANGE, api.DATA_SENT_EXCHANGE_TYPE, '', msg, this.headers);
   }
 
   async getData(id, sensorIds) {
     const msg = { id, sensorIds };
-    return this.sendRequest(api.REQUEST_DATA, msg);
+    const req = api.getDefinitionByKey(api.REQUEST_DATA);
+    return this.amqp.publishMessage(req.name, req.type, req.key, msg, this.headers);
   }
 
   async setData(id, dataList) {
     const msg = { id, data: dataList };
-    return this.sendRequest(api.UPDATE_DATA, msg);
+    const req = api.getDefinitionByKey(api.UPDATE_DATA);
+    return this.amqp.publishMessage(req.name, req.type, req.key, msg, this.headers);
   }
 
   async on(event, callback, options) {
