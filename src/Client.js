@@ -3,7 +3,7 @@ import AMQP from './network/AMQP';
 import * as api from './config/api';
 
 // Based on websocket interface: https://github.com/CESARBR/knot-cloud-websocket#methods
-export default class Client {
+class Client {
   constructor(config = {}) {
     this.amqp = new AMQP({
       hostname: 'localhost',
@@ -106,31 +106,42 @@ export default class Client {
     return this.amqp.publishMessage(req.name, req.type, req.key, msg, this.headers);
   }
 
-  async on(event, callback, options) {
-    if (Object.keys(this.events).includes(event)) {
-      const routingKey = this.events[event];
-      const exchange = api.getExchange(routingKey);
-      const queue = `${event}-${this.userKey}`;
-      return this.amqp.subscribeTo(exchange, routingKey, queue, (msg) => {
-        const { error, ...message } = msg;
-        callback(error, message);
-      }, options);
-    }
-    return Error('Event not recognized!');
+  async once(event, callback, options = {}) {
+    const queue = `${event}-${this.userKey}`;
+    const consumerTag = uniqid.time(`${queue}-`);
+    return this.on(event, async (msg) => {
+      this.amqp.unsubscribeConsumer(consumerTag);
+      const { error, ...message } = msg;
+      callback(error, message);
+    }, { ...options, consumerTag });
   }
 
-  async once(event, callback, options = {}) {
-    if (Object.keys(this.events).includes(event)) {
-      const routingKey = this.events[event];
-      const exchange = api.getExchange(routingKey);
-      const queue = `${event}-${this.userKey}`;
-      const consumerTag = uniqid.time(`${queue}-`);
-      return this.amqp.subscribeTo(exchange, routingKey, queue, async (msg) => {
-        this.amqp.unsubscribeConsumer(consumerTag);
-        const { error, ...message } = msg;
-        callback(error, message);
-      }, { ...options, consumerTag });
+  async on(event, callback, options) {
+    const queue = `${event}-${this.userKey}`;
+
+    if (!this.isValidEvent(event)) {
+      throw new Error('Event not recognized!');
     }
-    return Error('Event not recognized!');
+
+    const exchange = event === 'data'
+      ? { name: api.PUBLISH_DATA, type: api.DATA_SENT_EXCHANGE_TYPE }
+      : { name: api.DEVICE_EXCHANGE, type: api.DEVICE_EXCHANGE_TYPE };
+
+    return this.amqp.subscribeTo(
+      exchange.name,
+      exchange.type,
+      event,
+      queue,
+      callback,
+      options,
+    );
+  }
+
+  isValidEvent(event) {
+    // Regex to check if event follows the pattern device.*.data.*
+    const dataRegex = /device\.([a-f0-9]{16})\.data\.(request|update)/;
+    return dataRegex.test(event) || event === 'data';
   }
 }
+
+export default Client;
