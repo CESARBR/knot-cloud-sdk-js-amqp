@@ -14,7 +14,9 @@ class Client {
     const consumerTag = uniqid.time(`${queue}-`);
     const handler = async ({ error, ...reply }) => {
       if (reply.id === message.id) {
-        await this.amqp.unsubscribeConsumer(consumerTag);
+        this.amqp
+          .unsubscribeConsumer(consumerTag)
+          .catch((err) => console.log(err.message));
         if (error) {
           reject(Error(error));
         } else {
@@ -30,18 +32,29 @@ class Client {
       handler,
       { consumerTag }
     );
-    await this.amqp.publishMessage(
-      req.name,
-      req.type,
-      req.key,
-      message,
-      this.headers
-    );
+    try {
+      await this.amqp.publishMessage(
+        req.name,
+        req.type,
+        req.key,
+        message,
+        this.headers
+      );
+    } catch (err) {
+      await this.amqp.unsubscribeConsumer(consumerTag);
+      throw err;
+    }
   }
 
   async sendRequest(req, resp, message) {
     return new Promise((resolve, reject) =>
-      this.subscribeToResponse(resolve, reject, req, resp, message)
+      this.subscribeToResponse(
+        resolve,
+        reject,
+        req,
+        resp,
+        message
+      ).catch((err) => reject(err))
     );
   }
 
