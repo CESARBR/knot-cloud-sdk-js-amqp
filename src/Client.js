@@ -40,9 +40,10 @@ class Client {
   }
 
   setReplyOptions() {
-    const correlationId = uniqid();
-    this.headers['correlation-id'] = correlationId;
-    return correlationId;
+    const replyTo = uniqid();
+    this.headers.reply_to = replyTo;
+    this.headers.correlation_id = '';
+    return replyTo;
   }
 
   async connect() {
@@ -69,16 +70,16 @@ class Client {
 
   async authDevice(id) {
     const msg = { id };
-    const correlationId = this.setReplyOptions();
+    const replyTo = this.setReplyOptions();
     const req = api.getDefinitionByKey(api.AUTH_DEVICE);
-    const resp = { name: req.name, type: req.type, key: correlationId };
+    const resp = { name: req.name, type: req.type, key: replyTo };
     return this.sendRequest(req, resp, msg);
   }
 
   async getDevices() {
-    const correlationId = this.setReplyOptions();
+    const replyTo = this.setReplyOptions();
     const req = api.getDefinitionByKey(api.LIST_DEVICES);
-    const resp = { name: req.name, type: req.type, key: correlationId };
+    const resp = { name: req.name, type: req.type, key: replyTo };
     return this.sendRequest(req, resp, {});
   }
 
