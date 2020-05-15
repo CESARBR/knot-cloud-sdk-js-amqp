@@ -1,18 +1,11 @@
 import uniqid from 'uniqid';
-import AMQP from './network/AMQP';
-import * as api from './config/api';
 
 // Based on websocket interface: https://github.com/CESARBR/knot-cloud-websocket#methods
 class Client {
-  constructor(config = {}) {
-    this.amqp = new AMQP({
-      hostname: 'localhost',
-      port: 5672,
-      username: 'knot',
-      password: 'knot',
-      ...config,
-    });
-    this.headers = { Authorization: config.token };
+  constructor(token, amqp, api) {
+    this.amqp = amqp;
+    this.api = api;
+    this.headers = { Authorization: token };
     this.userKey = uniqid();
   }
 
@@ -69,48 +62,48 @@ class Client {
 
   async register(id, name) {
     const msg = { id, name };
-    const req = api.getDefinitionByKey(api.REGISTER_DEVICE);
+    const req = this.api.getDefinitionByKey(this.api.REGISTER_DEVICE);
     const resp = {
       name: req.name,
       type: req.type,
-      key: api.getResponseKey(api.REGISTER_DEVICE),
+      key: this.api.getResponseKey(this.api.REGISTER_DEVICE),
     };
     return this.sendRequest(req, resp, msg);
   }
 
   async unregister(id) {
     const msg = { id };
-    const req = api.getDefinitionByKey(api.UNREGISTER_DEVICE);
+    const req = this.api.getDefinitionByKey(this.api.UNREGISTER_DEVICE);
     const resp = {
       name: req.name,
       type: req.type,
-      key: api.getResponseKey(api.UNREGISTER_DEVICE),
+      key: this.api.getResponseKey(this.api.UNREGISTER_DEVICE),
     };
     return this.sendRequest(req, resp, msg);
   }
 
   async authDevice(id) {
     const msg = { id };
-    const replyTo = this.setReplyOptions();
-    const req = api.getDefinitionByKey(api.AUTH_DEVICE);
-    const resp = { name: req.name, type: req.type, key: replyTo };
+    const correlationId = this.setReplyOptions();
+    const req = this.api.getDefinitionByKey(this.api.AUTH_DEVICE);
+    const resp = { name: req.name, type: req.type, key: correlationId };
     return this.sendRequest(req, resp, msg);
   }
 
   async getDevices() {
     const replyTo = this.setReplyOptions();
-    const req = api.getDefinitionByKey(api.LIST_DEVICES);
+    const req = this.api.getDefinitionByKey(this.api.LIST_DEVICES);
     const resp = { name: req.name, type: req.type, key: replyTo };
     return this.sendRequest(req, resp, {});
   }
 
   async updateSchema(id, schemaList) {
     const msg = { id, schema: schemaList };
-    const req = api.getDefinitionByKey(api.UPDATE_SCHEMA);
+    const req = this.api.getDefinitionByKey(this.api.UPDATE_SCHEMA);
     const resp = {
       name: req.name,
       type: req.type,
-      key: api.getResponseKey(api.UPDATE_SCHEMA),
+      key: this.api.getResponseKey(this.api.UPDATE_SCHEMA),
     };
     return this.sendRequest(req, resp, msg);
   }
@@ -118,8 +111,8 @@ class Client {
   async publishData(id, dataList) {
     const msg = { id, data: dataList };
     return this.amqp.publishMessage(
-      api.DATA_SENT_EXCHANGE,
-      api.DATA_SENT_EXCHANGE_TYPE,
+      this.api.DATA_SENT_EXCHANGE,
+      this.api.DATA_SENT_EXCHANGE_TYPE,
       '',
       msg,
       this.headers
@@ -128,7 +121,7 @@ class Client {
 
   async getData(id, sensorIds) {
     const msg = { id, sensorIds };
-    const req = api.getDefinitionByKey(api.REQUEST_DATA);
+    const req = this.api.getDefinitionByKey(this.api.REQUEST_DATA);
     return this.amqp.publishMessage(
       req.name,
       req.type,
@@ -140,7 +133,7 @@ class Client {
 
   async setData(id, dataList) {
     const msg = { id, data: dataList };
-    const req = api.getDefinitionByKey(api.UPDATE_DATA);
+    const req = this.api.getDefinitionByKey(this.api.UPDATE_DATA);
     return this.amqp.publishMessage(
       req.name,
       req.type,
@@ -174,12 +167,12 @@ class Client {
     const exchange =
       event === 'data'
         ? {
-            name: api.PUBLISH_DATA,
-            type: api.DATA_SENT_EXCHANGE_TYPE,
+            name: this.api.PUBLISH_DATA,
+            type: this.api.DATA_SENT_EXCHANGE_TYPE,
           }
         : {
-            name: api.DEVICE_EXCHANGE,
-            type: api.DEVICE_EXCHANGE_TYPE,
+            name: this.api.DEVICE_EXCHANGE,
+            type: this.api.DEVICE_EXCHANGE_TYPE,
           };
 
     return this.amqp.subscribeTo(
