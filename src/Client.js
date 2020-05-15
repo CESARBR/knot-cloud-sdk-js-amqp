@@ -29,14 +29,27 @@ class Client {
         }
       }
     };
-    await this.amqp.subscribeTo(resp.name, resp.type, resp.key, queue, handler, { consumerTag });
-    await this.amqp.publishMessage(req.name, req.type, req.key, message, this.headers);
+    await this.amqp.subscribeTo(
+      resp.name,
+      resp.type,
+      resp.key,
+      queue,
+      handler,
+      { consumerTag }
+    );
+    await this.amqp.publishMessage(
+      req.name,
+      req.type,
+      req.key,
+      message,
+      this.headers
+    );
   }
 
   async sendRequest(req, resp, message) {
-    return new Promise((resolve, reject) => (
+    return new Promise((resolve, reject) =>
       this.subscribeToResponse(resolve, reject, req, resp, message)
-    ));
+    );
   }
 
   setReplyOptions() {
@@ -57,14 +70,22 @@ class Client {
   async register(id, name) {
     const msg = { id, name };
     const req = api.getDefinitionByKey(api.REGISTER_DEVICE);
-    const resp = { name: req.name, type: req.type, key: api.getResponseKey(api.REGISTER_DEVICE) };
+    const resp = {
+      name: req.name,
+      type: req.type,
+      key: api.getResponseKey(api.REGISTER_DEVICE),
+    };
     return this.sendRequest(req, resp, msg);
   }
 
   async unregister(id) {
     const msg = { id };
     const req = api.getDefinitionByKey(api.UNREGISTER_DEVICE);
-    const resp = { name: req.name, type: req.type, key: api.getResponseKey(api.UNREGISTER_DEVICE) };
+    const resp = {
+      name: req.name,
+      type: req.type,
+      key: api.getResponseKey(api.UNREGISTER_DEVICE),
+    };
     return this.sendRequest(req, resp, msg);
   }
 
@@ -86,35 +107,61 @@ class Client {
   async updateSchema(id, schemaList) {
     const msg = { id, schema: schemaList };
     const req = api.getDefinitionByKey(api.UPDATE_SCHEMA);
-    const resp = { name: req.name, type: req.type, key: api.getResponseKey(api.UPDATE_SCHEMA) };
+    const resp = {
+      name: req.name,
+      type: req.type,
+      key: api.getResponseKey(api.UPDATE_SCHEMA),
+    };
     return this.sendRequest(req, resp, msg);
   }
 
   async publishData(id, dataList) {
     const msg = { id, data: dataList };
-    return this.amqp.publishMessage(api.DATA_SENT_EXCHANGE, api.DATA_SENT_EXCHANGE_TYPE, '', msg, this.headers);
+    return this.amqp.publishMessage(
+      api.DATA_SENT_EXCHANGE,
+      api.DATA_SENT_EXCHANGE_TYPE,
+      '',
+      msg,
+      this.headers
+    );
   }
 
   async getData(id, sensorIds) {
     const msg = { id, sensorIds };
     const req = api.getDefinitionByKey(api.REQUEST_DATA);
-    return this.amqp.publishMessage(req.name, req.type, req.key, msg, this.headers);
+    return this.amqp.publishMessage(
+      req.name,
+      req.type,
+      req.key,
+      msg,
+      this.headers
+    );
   }
 
   async setData(id, dataList) {
     const msg = { id, data: dataList };
     const req = api.getDefinitionByKey(api.UPDATE_DATA);
-    return this.amqp.publishMessage(req.name, req.type, req.key, msg, this.headers);
+    return this.amqp.publishMessage(
+      req.name,
+      req.type,
+      req.key,
+      msg,
+      this.headers
+    );
   }
 
   async once(event, callback, options = {}) {
     const queue = `${event}-${this.userKey}`;
     const consumerTag = uniqid.time(`${queue}-`);
-    return this.on(event, async (msg) => {
-      this.amqp.unsubscribeConsumer(consumerTag);
-      const { error, ...message } = msg;
-      callback(error, message);
-    }, { ...options, consumerTag });
+    return this.on(
+      event,
+      async (msg) => {
+        this.amqp.unsubscribeConsumer(consumerTag);
+        const { error, ...message } = msg;
+        callback(error, message);
+      },
+      { ...options, consumerTag }
+    );
   }
 
   async on(event, callback, options) {
@@ -124,9 +171,16 @@ class Client {
       throw new Error('Event not recognized!');
     }
 
-    const exchange = event === 'data'
-      ? { name: api.PUBLISH_DATA, type: api.DATA_SENT_EXCHANGE_TYPE }
-      : { name: api.DEVICE_EXCHANGE, type: api.DEVICE_EXCHANGE_TYPE };
+    const exchange =
+      event === 'data'
+        ? {
+            name: api.PUBLISH_DATA,
+            type: api.DATA_SENT_EXCHANGE_TYPE,
+          }
+        : {
+            name: api.DEVICE_EXCHANGE,
+            type: api.DEVICE_EXCHANGE_TYPE,
+          };
 
     return this.amqp.subscribeTo(
       exchange.name,
@@ -134,7 +188,7 @@ class Client {
       event,
       queue,
       callback,
-      options,
+      options
     );
   }
 

@@ -43,9 +43,10 @@ const responses = {
 };
 
 export const getDefinitionByKey = (key) => {
-  const [name, args] = Object
-    .entries(requestExchanges)
-    .find(([, obj]) => obj.keys.includes(key)) || [];
+  const [name, args] =
+    Object.entries(requestExchanges).find(([, obj]) =>
+      obj.keys.includes(key)
+    ) || [];
   return { name, type: args.type, key };
 };
 
