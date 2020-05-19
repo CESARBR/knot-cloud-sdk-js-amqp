@@ -156,7 +156,7 @@ class Client {
     );
   }
 
-  async once(event, callback, options = {}) {
+  async once(event, callback) {
     const queue = `${event}-${this.userKey}`;
     const consumerTag = uniqid.time(`${queue}-`);
     return this.on(
@@ -165,11 +165,11 @@ class Client {
         this.amqp.unsubscribeConsumer(consumerTag);
         callback(msg);
       },
-      { ...options, consumerTag }
+      { consumerTag }
     );
   }
 
-  async on(event, callback, options) {
+  async on(event, callback, options = {}) {
     const queue = `${event}-${this.userKey}`;
 
     if (!this.isValidEvent(event)) {
