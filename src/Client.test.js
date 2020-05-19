@@ -202,6 +202,28 @@ const onceUseCases = [
   },
 ];
 
+const onUseCases = [
+  {
+    testName: 'should listen to event when there is no error at all',
+    event: 'data',
+    callback: jest.fn(),
+  },
+  {
+    testName:
+      'should fail to register listener when unable to subscribe on events',
+    event: 'data',
+    amqpOptions: {
+      subscribeErr: errors.subscribeTo,
+    },
+    expectedErr: errors.subscribeTo,
+  },
+  {
+    testName: 'should fail to register listener when the event is invalid',
+    event: 'invalid-event',
+    expectedErr: invalidEventErr,
+  },
+];
+
 describe('Client', () => {
   beforeEach(() => {
     amqpMocks.mockStart.mockClear();
@@ -405,6 +427,29 @@ describe('Client', () => {
 
       try {
         await client.once(event, callback);
+        amqp.executeEvent();
+      } catch (err) {
+        error = err.message;
+      }
+
+      if (error) {
+        expect(error).toBe(expectedErr);
+      } else {
+        expect(callback).toHaveBeenCalled();
+      }
+    });
+  });
+
+  onUseCases.forEach((useCase) => {
+    const { testName, event, callback, amqpOptions, expectedErr } = useCase;
+
+    test(`on: ${testName}`, async () => {
+      const amqp = new AMQP(amqpOptions);
+      const client = new Client(mockToken, amqp, api);
+      let error;
+
+      try {
+        await client.on(event, callback);
         amqp.executeEvent();
       } catch (err) {
         error = err.message;
