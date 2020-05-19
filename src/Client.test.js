@@ -18,6 +18,12 @@ const mockThing = {
     },
   ],
 };
+const mockData = [
+  {
+    sensorId: 0,
+    value: true,
+  },
+];
 
 const errors = {
   // Client methods
@@ -137,6 +143,19 @@ const updateSchemaUseCases = [
       },
     },
     expectedErr: errors.updateSchema,
+  },
+];
+
+const publishDataUseCases = [
+  {
+    testName: 'should publish data when there is no error at all',
+  },
+  {
+    testName: 'should fail to publish data when unable to publish a message',
+    amqpOptions: {
+      publishErr: errors.publishMessage,
+    },
+    expectedErr: errors.publishMessage,
   },
 ];
 
@@ -263,6 +282,27 @@ describe('Client', () => {
       if (response) {
         expect(response).toMatchObject(amqpOptions.responseMessage);
       }
+      if (error) {
+        expect(error).toBe(expectedErr);
+      }
+    });
+  });
+
+  publishDataUseCases.forEach((useCase) => {
+    const { testName, amqpOptions, expectedErr } = useCase;
+
+    test(`publishData: ${testName}`, async () => {
+      const amqp = new AMQP(amqpOptions);
+      const client = new Client(mockToken, amqp, api);
+      let error;
+
+      try {
+        await client.publishData(mockThing.id, mockData);
+      } catch (err) {
+        error = err.message;
+      }
+
+      expect(amqpMocks.mockPublishMessage).toHaveBeenCalled();
       if (error) {
         expect(error).toBe(expectedErr);
       }
