@@ -25,6 +25,7 @@ const errors = {
   unregister: 'error unregistering thing',
   authDevice: 'error authenticating thing',
   getDevices: 'error listing registered things',
+  updateSchema: 'error updating thing schema',
   // AMQP methods
   start: 'error while starting AMQP connection',
   stop: 'error while stopping AMQP connection',
@@ -115,6 +116,27 @@ const getDevicesUseCases = [
       responseMessage: { devices: [], error: errors.getDevices },
     },
     expectedErr: errors.getDevices,
+  },
+];
+
+const updateSchemaUseCases = [
+  {
+    testName: "should update thing's schema when there is no error at all",
+    amqpOptions: {
+      responseMessage: { id: mockThing.id, schema: mockThing.schema },
+    },
+  },
+  {
+    testName:
+      "should fail to update thing's schema when response has some error",
+    amqpOptions: {
+      responseMessage: {
+        id: mockThing.id,
+        schema: null,
+        error: errors.updateSchema,
+      },
+    },
+    expectedErr: errors.updateSchema,
   },
 ];
 
@@ -210,6 +232,30 @@ describe('Client', () => {
 
       try {
         response = await client.getDevices();
+      } catch (err) {
+        error = err.message;
+      }
+
+      if (response) {
+        expect(response).toMatchObject(amqpOptions.responseMessage);
+      }
+      if (error) {
+        expect(error).toBe(expectedErr);
+      }
+    });
+  });
+
+  updateSchemaUseCases.forEach((useCase) => {
+    const { testName, amqpOptions, expectedErr } = useCase;
+
+    test(`updateSchema: ${testName}`, async () => {
+      const amqp = new AMQP(amqpOptions);
+      const client = new Client(mockToken, amqp, api);
+      let response;
+      let error;
+
+      try {
+        response = await client.updateSchema(mockThing.id, mockThing.schema);
       } catch (err) {
         error = err.message;
       }
