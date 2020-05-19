@@ -163,8 +163,7 @@ class Client {
       event,
       async (msg) => {
         this.amqp.unsubscribeConsumer(consumerTag);
-        const { error, ...message } = msg;
-        callback(error, message);
+        callback(msg);
       },
       { ...options, consumerTag }
     );
