@@ -23,6 +23,7 @@ const errors = {
   // Client methods
   register: 'error registering thing',
   unregister: 'error unregistering thing',
+  authDevice: 'error authenticating thing',
   // AMQP methods
   start: 'error while starting AMQP connection',
   stop: 'error while stopping AMQP connection',
@@ -84,6 +85,22 @@ const unregisterUseCases = [
   },
 ];
 
+const authDeviceUseCases = [
+  {
+    testName: 'should authenticate thing when there is no error at all',
+    amqpOptions: {
+      responseMessage: { id: mockThing.id },
+    },
+  },
+  {
+    testName: 'should fail to authenticate when response has some error',
+    amqpOptions: {
+      responseMessage: { id: mockThing.id, error: errors.authDevice },
+    },
+    expectedErr: errors.authDevice,
+  },
+];
+
 describe('Client', () => {
   beforeEach(() => {
     amqpMocks.mockStart.mockClear();
@@ -128,6 +145,30 @@ describe('Client', () => {
 
       try {
         response = await client.unregister(mockThing.id);
+      } catch (err) {
+        error = err.message;
+      }
+
+      if (response) {
+        expect(response).toMatchObject(amqpOptions.responseMessage);
+      }
+      if (error) {
+        expect(error).toBe(expectedErr);
+      }
+    });
+  });
+
+  authDeviceUseCases.forEach((useCase) => {
+    const { testName, amqpOptions, expectedErr } = useCase;
+
+    test(`authDevice: ${testName}`, async () => {
+      const amqp = new AMQP(amqpOptions);
+      const client = new Client(mockToken, amqp, api);
+      let response;
+      let error;
+
+      try {
+        response = await client.authDevice(mockThing.id);
       } catch (err) {
         error = err.message;
       }
