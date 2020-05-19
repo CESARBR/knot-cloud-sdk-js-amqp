@@ -159,6 +159,20 @@ const publishDataUseCases = [
   },
 ];
 
+const getDataUseCases = [
+  {
+    testName: 'should request for data when there is no error at all',
+  },
+  {
+    testName:
+      'should fail to request for data when unable to publish the request message',
+    amqpOptions: {
+      publishErr: errors.publishMessage,
+    },
+    expectedErr: errors.publishMessage,
+  },
+];
+
 describe('Client', () => {
   beforeEach(() => {
     amqpMocks.mockStart.mockClear();
@@ -298,6 +312,28 @@ describe('Client', () => {
 
       try {
         await client.publishData(mockThing.id, mockData);
+      } catch (err) {
+        error = err.message;
+      }
+
+      expect(amqpMocks.mockPublishMessage).toHaveBeenCalled();
+      if (error) {
+        expect(error).toBe(expectedErr);
+      }
+    });
+  });
+
+  getDataUseCases.forEach((useCase) => {
+    const { testName, amqpOptions, expectedErr } = useCase;
+
+    test(`getData: ${testName}`, async () => {
+      const amqp = new AMQP(amqpOptions);
+      const client = new Client(mockToken, amqp, api);
+      let error;
+
+      try {
+        const sensors = mockData.map((data) => data.sensorId);
+        await client.getData(mockThing.id, sensors);
       } catch (err) {
         error = err.message;
       }
