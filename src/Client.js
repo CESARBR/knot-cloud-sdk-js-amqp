@@ -7,6 +7,7 @@ class Client {
     this.api = api;
     this.headers = { Authorization: token };
     this.userKey = uniqid();
+    this.consumers = [];
   }
 
   async subscribeToResponse(resolve, reject, req, resp, message) {
@@ -170,10 +171,18 @@ class Client {
   }
 
   async on(event, callback, options = {}) {
-    const queue = `${event}-${this.userKey}`;
+    const { consumerTag = uniqid() } = options;
+    const queue = `${event}-${this.userKey}-${consumerTag}`;
 
     if (!this.isValidEvent(event)) {
       throw new Error('Event not recognized!');
+    }
+
+    if (!options.consumerTag) {
+      this.consumers.push({
+        topic: event,
+        tag: consumerTag,
+      });
     }
 
     const exchange =
@@ -193,8 +202,17 @@ class Client {
       event,
       queue,
       callback,
-      options
+      { ...options, consumerTag }
     );
+  }
+
+  async unsubscribe(event) {
+    await Promise.all(
+      this.consumers
+        .filter(({ topic }) => topic === event)
+        .map(({ tag }) => this.amqp.unsubscribeConsumer(tag))
+    );
+    this.consumers = this.consumers.filter(({ topic }) => topic !== event);
   }
 
   isValidEvent(event) {
