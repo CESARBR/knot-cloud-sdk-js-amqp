@@ -25,6 +25,8 @@ const mockData = [
   },
 ];
 
+const invalidEventErr = 'Event not recognized!';
+
 const errors = {
   // Client methods
   register: 'error registering thing',
@@ -184,6 +186,19 @@ const setDataUseCases = [
       publishErr: errors.publishMessage,
     },
     expectedErr: errors.publishMessage,
+  },
+];
+
+const onceUseCases = [
+  {
+    testName: 'should listen to event when there is no error at all',
+    event: 'data',
+    callback: jest.fn(),
+  },
+  {
+    testName: 'should fail to register listener when the event is invalid',
+    event: 'invalid-event',
+    expectedErr: invalidEventErr,
   },
 ];
 
@@ -376,6 +391,29 @@ describe('Client', () => {
       expect(amqpMocks.mockPublishMessage).toHaveBeenCalled();
       if (error) {
         expect(error).toBe(expectedErr);
+      }
+    });
+  });
+
+  onceUseCases.forEach((useCase) => {
+    const { testName, event, callback, amqpOptions, expectedErr } = useCase;
+
+    test(`once: ${testName}`, async () => {
+      const amqp = new AMQP(amqpOptions);
+      const client = new Client(mockToken, amqp, api);
+      let error;
+
+      try {
+        await client.once(event, callback);
+        amqp.executeEvent();
+      } catch (err) {
+        error = err.message;
+      }
+
+      if (error) {
+        expect(error).toBe(expectedErr);
+      } else {
+        expect(callback).toHaveBeenCalled();
       }
     });
   });

@@ -46,11 +46,16 @@ export default jest.fn().mockImplementation((options = {}) => {
     mockUnsubscribeConsumer.mockResolvedValue();
   }
 
+  const executeEvent = () => {
+    mockCallback();
+  };
+
   return {
     start: mockStart,
     stop: mockStop,
     publishMessage: mockPublishMessage,
     subscribeTo: mockSubscribeTo,
     unsubscribeConsumer: mockUnsubscribeConsumer,
+    executeEvent,
   };
 });
