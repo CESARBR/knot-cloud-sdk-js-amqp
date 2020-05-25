@@ -31,13 +31,15 @@ export default jest.fn().mockImplementation((options = {}) => {
   });
 
   // subscribeTo
-  mockSubscribeTo.mockImplementation((e, t, k, q, callback) => {
-    if (options.subscribeErr) {
-      return Promise.reject(Error(options.subscribeErr));
+  mockSubscribeTo.mockImplementation(
+    (exchangeName, exchangeType, routingKey, queueName, callback) => {
+      if (options.subscribeErr) {
+        return Promise.reject(Error(options.subscribeErr));
+      }
+      mockCallback = callback;
+      return Promise.resolve(options.subscribeRet);
     }
-    mockCallback = callback;
-    return Promise.resolve(options.subscribeRet);
-  });
+  );
 
   // unsubscribeConsumer
   if (options.unsubscribeErr) {
