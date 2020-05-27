@@ -57,14 +57,15 @@ const registerUseCases = [
     expectedErr: errors.register,
   },
   {
-    testName: 'should fail to register when unable to publish to channel',
+    testName: 'should fail to register when unable to publish request message',
     amqpOptions: {
       publishErr: errors.publishMessage,
     },
     expectedErr: errors.publishMessage,
   },
   {
-    testName: 'should fail to register when unable to subscribe on channel',
+    testName:
+      'should fail to register when unable to subscribe on response event',
     amqpOptions: {
       subscribeErr: errors.subscribeTo,
     },
