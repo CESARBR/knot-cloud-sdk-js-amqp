@@ -10,6 +10,7 @@ Secondly, before submitting your contribution, please make sure to take a moment
 - [Issue Reporting Guidelines](#issue-reporting-guidelines)
 - [Pull Request Guidelines](#pull-request-guidelines)
 - [Development Setup](#development-setup)
+- [License](#license)
 
 ## Code of Conduct
 
@@ -34,7 +35,8 @@ KNoT uses the [GitHub flow](https://guides.github.com/introduction/flow/) as mai
 4. When your changes are ready for review, push your branch: `git push origin my-feature-branch`
 5. Create a pull request from your branch to `CESARBR/master` (make sure to fill in all [Pull Request](.github/PULL_REQUEST_TEMPLATE.md) requirements)
 6. No need to assign the pull request to anyone, we'll review it when we can
-7. When the changes have been reviewed and approved, someone will squash and merge for you
+7. When the changes have been reviewed and approved, if there are no conflicts with the `master` branch, someone will rebase and merge for you. If there are conflicts, go to step 8
+8. If your branch has conflicts with the `master` branch, use [interactive rebase to resolve conflicts](https://help.github.com/en/github/using-git/resolving-merge-conflicts-after-a-git-rebase): `git rebase master -i`, then `git push -f` to update your branch (this automatically updates the pull request)
 
 It is very important to separate new features or improvements into separate feature branches, and to send a pull request for each branch. This allow us to review and pull in new features or improvements individually.
 
@@ -67,4 +69,4 @@ The default test script will do the following: lint with ESLint -> unit tests. *
 
 ## License
 
-You must agree that your patch will be licensed under the repository's license, and when we change the license we will assume that you agreed with the change unless you object to the changes in time.
+You must agree that your patch will be licensed under the repository's [license](LICENSE), and when we change the license we will assume that you agreed with the change unless you object to the changes in time.
