@@ -22,13 +22,15 @@ export default jest.fn().mockImplementation((options = {}) => {
   }
 
   // publishMessage
-  mockPublishMessage.mockImplementation(() => {
-    if (options.publishErr) {
-      return Promise.reject(Error(options.publishErr));
+  mockPublishMessage.mockImplementation(
+    (exchangeName, exchangeType, routingKey, message, messageOptions) => {
+      if (options.publishErr) {
+        return Promise.reject(Error(options.publishErr));
+      }
+      mockCallback(options.responseMessage, messageOptions);
+      return Promise.resolve(options.publishRet);
     }
-    mockCallback(options.responseMessage);
-    return Promise.resolve(options.publishRet);
-  });
+  );
 
   // subscribeTo
   mockSubscribeTo.mockImplementation(

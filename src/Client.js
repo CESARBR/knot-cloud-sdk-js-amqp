@@ -11,17 +11,21 @@ class Client {
   }
 
   async subscribeToResponse(resolve, reject, req, resp, message) {
-    const queue = `${resp.key}-${this.userKey}`;
-    const consumerTag = uniqid.time(`${queue}-`);
-    const handler = async ({ error, ...reply }) => {
-      if (reply.id === message.id) {
-        this.amqp
-          .unsubscribeConsumer(consumerTag)
-          .catch((err) => console.log(err.message));
-        if (error) {
-          reject(Error(error));
-        } else {
-          resolve(reply);
+    const { payload, options } = message;
+    const queue = `${req.key}-${this.userKey}`;
+    const consumerTag = `consumer-${queue}`;
+    const handler = async ({ error, ...response }, properties) => {
+      if (properties.correlationId === options.correlationId) {
+        if (response.id === payload.id) {
+          this.amqp
+            .unsubscribeConsumer(consumerTag)
+            // eslint-disable-next-line no-console
+            .catch((err) => console.log(err.message));
+          if (error) {
+            reject(Error(error));
+          } else {
+            resolve(response);
+          }
         }
       }
     };
@@ -38,8 +42,8 @@ class Client {
         req.name,
         req.type,
         req.key,
-        message,
-        this.headers
+        payload,
+        options
       );
     } catch (err) {
       await this.amqp.unsubscribeConsumer(consumerTag);
@@ -59,13 +63,6 @@ class Client {
     );
   }
 
-  setReplyOptions() {
-    const replyTo = uniqid();
-    this.headers.reply_to = replyTo;
-    this.headers.correlation_id = '';
-    return replyTo;
-  }
-
   async connect() {
     return this.amqp.start();
   }
@@ -75,75 +72,85 @@ class Client {
   }
 
   async register(id, name) {
-    const msg = { id, name };
+    const msg = {
+      payload: { id, name },
+      options: { headers: this.headers },
+    };
     const req = this.api.getDefinition(this.api.REGISTER_DEVICE);
     const resp = this.api.getResponseDefinition(this.api.REGISTER_DEVICE);
     return this.sendRequest(req, resp, msg);
   }
 
   async unregister(id) {
-    const msg = { id };
+    const msg = {
+      payload: { id },
+      options: { headers: this.headers },
+    };
     const req = this.api.getDefinition(this.api.UNREGISTER_DEVICE);
     const resp = this.api.getResponseDefinition(this.api.UNREGISTER_DEVICE);
     return this.sendRequest(req, resp, msg);
   }
 
   async authDevice(id) {
-    const msg = { id };
-    const correlationId = this.setReplyOptions();
+    const msg = {
+      payload: { id },
+      options: {
+        headers: this.headers,
+        replyTo: `auth-${this.userKey}`,
+        correlationId: uniqid.time(),
+      },
+    };
     const req = this.api.getDefinition(this.api.AUTH_DEVICE);
-    const resp = { name: req.name, type: req.type, key: correlationId };
+    const resp = { ...req, key: msg.options.replyTo };
     return this.sendRequest(req, resp, msg);
   }
 
   async getDevices() {
-    const replyTo = this.setReplyOptions();
+    const msg = {
+      payload: {},
+      options: {
+        headers: this.headers,
+        replyTo: `list-${this.userKey}`,
+        correlationId: uniqid.time(),
+      },
+    };
     const req = this.api.getDefinition(this.api.LIST_DEVICES);
-    const resp = { name: req.name, type: req.type, key: replyTo };
-    return this.sendRequest(req, resp, {});
+    const resp = { ...req, key: msg.options.replyTo };
+    return this.sendRequest(req, resp, msg);
   }
 
   async updateSchema(id, schemaList) {
-    const msg = { id, schema: schemaList };
+    const msg = {
+      payload: { id, schema: schemaList },
+      options: { headers: this.headers },
+    };
     const req = this.api.getDefinition(this.api.UPDATE_SCHEMA);
     const resp = this.api.getResponseDefinition(this.api.UPDATE_SCHEMA);
     return this.sendRequest(req, resp, msg);
   }
 
   async publishData(id, dataList) {
-    const msg = { id, data: dataList };
+    const payload = { id, data: dataList };
     const req = this.api.getDefinition(this.api.DATA_SENT_EXCHANGE);
-    return this.amqp.publishMessage(
-      req.name,
-      req.type,
-      req.key,
-      msg,
-      this.headers
-    );
+    return this.amqp.publishMessage(req.name, req.type, req.key, payload, {
+      headers: this.headers,
+    });
   }
 
   async getData(id, sensorIds) {
-    const msg = { id, sensorIds };
+    const payload = { id, sensorIds };
     const req = this.api.getDefinition(this.api.REQUEST_DATA);
-    return this.amqp.publishMessage(
-      req.name,
-      req.type,
-      req.key,
-      msg,
-      this.headers
-    );
+    return this.amqp.publishMessage(req.name, req.type, req.key, payload, {
+      headers: this.headers,
+    });
   }
 
   async setData(id, dataList) {
-    const msg = { id, data: dataList };
+    const payload = { id, data: dataList };
     const req = this.api.getDefinition(this.api.UPDATE_DATA);
-    return this.amqp.publishMessage(
-      req.name,
-      req.type,
-      req.key,
-      msg,
-      this.headers
-    );
+    return this.amqp.publishMessage(req.name, req.type, req.key, payload, {
+      headers: this.headers,
+    });
   }
 
   async once(event, callback) {
