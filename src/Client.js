@@ -68,6 +68,10 @@ class Client {
   }
 
   async close() {
+    await Promise.all(
+      this.consumers.map(({ tag }) => this.amqp.unsubscribeConsumer(tag))
+    );
+    this.consumers = [];
     return this.amqp.stop();
   }
 
