@@ -1,4 +1,19 @@
 
+# [2.0.0](https://github.com/CESARBR/knot-cloud-sdk-js-amqp/compare/v1.0.1...v2.0.0)
+
+## Feature
+
+  - Add support to the new AMQP API documented [here](https://github.com/CESARBR/knot-babeltower/blob/master/docs/events.md)
+
+## Bug Fixes
+
+  - Fix error catching when subscribing to response
+
+## Improvements
+
+  - Add prettier formatter
+  - Add unit test to all operations
+
 # [1.0.1](https://github.com/CESARBR/knot-cloud-sdk-js-amqp/compare/v1.0.0...v1.0.1)
 
 ## Bug Fixes
