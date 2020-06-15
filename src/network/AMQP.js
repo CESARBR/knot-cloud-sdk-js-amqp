@@ -1,4 +1,4 @@
-import amqplib from 'amqplib';
+import amqp from 'amqp-connection-manager';
 
 export default class AMQP {
   constructor(config) {
@@ -12,8 +12,16 @@ export default class AMQP {
   }
 
   async start() {
-    this.connection = await amqplib.connect(this.config);
-    this.channel = await this.connection.createChannel();
+    this.connection = await amqp.connect(this.config);
+    await new Promise((resolve) => {
+      this.connection.createChannel({
+        json: true,
+        setup: (channel) => {
+          this.channel = channel;
+          resolve();
+        },
+      });
+    });
   }
 
   async stop() {
