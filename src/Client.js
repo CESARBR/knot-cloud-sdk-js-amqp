@@ -64,14 +64,11 @@ class Client {
   }
 
   async connect() {
-    return this.amqp.start();
+    return this.amqp.start(async () => this.registerConsumers());
   }
 
   async close() {
-    await Promise.all(
-      this.consumers.map(({ tag }) => this.amqp.unsubscribeConsumer(tag))
-    );
-    this.consumers = [];
+    this.clearConsumers();
     return this.amqp.stop();
   }
 
@@ -178,13 +175,6 @@ class Client {
       throw new Error('Event not recognized!');
     }
 
-    if (!options.consumerTag) {
-      this.consumers.push({
-        topic: event,
-        tag: consumerTag,
-      });
-    }
-
     const exchange =
       event === 'data'
         ? {
@@ -195,6 +185,15 @@ class Client {
             name: this.api.DEVICE_EXCHANGE,
             type: this.api.DEVICE_EXCHANGE_TYPE,
           };
+
+    if (!options.consumerTag) {
+      this.consumers.push({
+        topic: event,
+        exchange,
+        handler: callback,
+        tag: consumerTag,
+      });
+    }
 
     return this.amqp.subscribeTo(
       exchange.name,
@@ -219,6 +218,28 @@ class Client {
     // Regex to check if event follows the pattern device.<thingId>.data.(request|update)
     const dataRegex = /device\.([a-f0-9]{16})\.data\.(request|update)/;
     return dataRegex.test(event) || event === 'data';
+  }
+
+  async registerConsumers() {
+    await Promise.all(
+      this.consumers.map(({ topic, exchange, handler, tag }) =>
+        this.amqp.subscribeTo(
+          exchange.name,
+          exchange.type,
+          topic,
+          `${topic}-${this.userKey}-${tag}`,
+          handler,
+          { consumerTag: tag }
+        )
+      )
+    );
+  }
+
+  async clearConsumers() {
+    await Promise.all(
+      this.consumers.map(({ tag }) => this.amqp.unsubscribeConsumer(tag))
+    );
+    this.consumers = [];
   }
 }
 
