@@ -11,13 +11,14 @@ export default class AMQP {
     };
   }
 
-  async start() {
+  async start(onConnected) {
     this.connection = await amqp.connect(this.config);
     await new Promise((resolve) => {
       this.connection.createChannel({
         json: true,
-        setup: (channel) => {
+        setup: async (channel) => {
           this.channel = channel;
+          await onConnected();
           resolve();
         },
       });
