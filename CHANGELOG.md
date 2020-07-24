@@ -1,3 +1,8 @@
+# [2.1.0](https://github.com/CESARBR/knot-cloud-sdk-js-amqp/compare/v2.0.0...v2.1.0)
+
+## Feature
+
+  - Add AMQP reconnection support
 
 # [2.0.0](https://github.com/CESARBR/knot-cloud-sdk-js-amqp/compare/v1.0.1...v2.0.0)
 
