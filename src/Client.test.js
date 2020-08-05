@@ -17,6 +17,15 @@ const mockThing = {
       name: 'bool-sensor',
     },
   ],
+  config: [
+    {
+      sensorId: 0,
+      change: true,
+      timeSec: 10,
+      lowerThreshold: 1000,
+      upperThreshold: 3000,
+    },
+  ],
 };
 const mockData = [
   {
@@ -34,6 +43,7 @@ const errors = {
   authDevice: 'error authenticating thing',
   getDevices: 'error listing registered things',
   updateSchema: 'error updating thing schema',
+  updateConfig: 'error updating thing config',
   // AMQP methods
   start: 'error while starting AMQP connection',
   stop: 'error while stopping AMQP connection',
@@ -146,6 +156,28 @@ const updateSchemaUseCases = [
       },
     },
     expectedErr: errors.updateSchema,
+  },
+];
+
+const updateConfigUseCases = [
+  {
+    testName:
+      "should update thing's config when there is no error on sending command to message broker",
+    amqpOptions: {
+      responseMessage: { id: mockThing.id, config: mockThing.config },
+    },
+  },
+  {
+    testName:
+      "should fail to update thing's config when failed to send command to message broker",
+    amqpOptions: {
+      responseMessage: {
+        id: mockThing.id,
+        config: null,
+        error: errors.updateConfig,
+      },
+    },
+    expectedErr: errors.updateConfig,
   },
 ];
 
@@ -341,6 +373,30 @@ describe('Client', () => {
 
       try {
         response = await client.updateSchema(mockThing.id, mockThing.schema);
+      } catch (err) {
+        error = err.message;
+      }
+
+      if (response) {
+        expect(response).toMatchObject(amqpOptions.responseMessage);
+      }
+      if (error) {
+        expect(error).toBe(expectedErr);
+      }
+    });
+  });
+
+  updateConfigUseCases.forEach((useCase) => {
+    const { testName, amqpOptions, expectedErr } = useCase;
+
+    test(`updateConfig: ${testName}`, async () => {
+      const amqp = new AMQP(amqpOptions);
+      const client = new Client(mockToken, amqp, api);
+      let response;
+      let error;
+
+      try {
+        response = await client.updateConfig(mockThing.id, mockThing.config);
       } catch (err) {
         error = err.message;
       }
