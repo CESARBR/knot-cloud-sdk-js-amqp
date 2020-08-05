@@ -130,6 +130,16 @@ class Client {
     return this.sendRequest(req, resp, msg);
   }
 
+  async updateConfig(id, configList) {
+    const msg = {
+      payload: { id, config: configList },
+      options: { headers: this.headers },
+    };
+    const req = this.api.getDefinition(this.api.UPDATE_CONFIG);
+    const resp = this.api.getResponseDefinition(this.api.UPDATE_CONFIG);
+    return this.sendRequest(req, resp, msg);
+  }
+
   async publishData(id, dataList) {
     const payload = { id, data: dataList };
     const req = this.api.getDefinition(this.api.DATA_SENT_EXCHANGE);
