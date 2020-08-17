@@ -232,6 +232,16 @@ const onceUseCases = [
 
 const onUseCases = [
   {
+    testName: 'should listen successfully to data events when subscribe works fine',
+    event: 'data',
+    callback: jest.fn(),
+  },
+  {
+    testName: 'should listen successfully to config updated events when subscribe works fine',
+    event: 'device.config.updated',
+    callback: jest.fn(),
+  },
+  {
     testName: 'should listen to event when there is no error at all',
     event: 'data',
     callback: jest.fn(),
