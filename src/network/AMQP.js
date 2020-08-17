@@ -44,17 +44,11 @@ export default class AMQP {
 
   async publishMessage(exchange, type, routingKey, message, options) {
     await this.declareExchange(exchange, type);
-    this.channel.publish(
-      exchange,
-      routingKey,
-      Buffer.from(JSON.stringify(message)),
-      options
-    );
+    this.channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(message)), options);
   }
 
   async subscribeTo(exchange, type, routingKey, queue, onMessage, options) {
-    const callback = (msg) =>
-      onMessage(JSON.parse(msg.content.toString()), msg.properties);
+    const callback = (msg) => onMessage(JSON.parse(msg.content.toString()), msg.properties);
     await this.declareExchange(exchange, type);
     await this.bindQueue(queue, exchange, routingKey);
     return this.channel.consume(queue, callback, options);

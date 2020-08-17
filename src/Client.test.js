@@ -74,8 +74,7 @@ const registerUseCases = [
     expectedErr: errors.publishMessage,
   },
   {
-    testName:
-      'should fail to register when unable to subscribe on response event',
+    testName: 'should fail to register when unable to subscribe on response event',
     amqpOptions: {
       subscribeErr: errors.subscribeTo,
     },
@@ -146,8 +145,7 @@ const updateSchemaUseCases = [
     },
   },
   {
-    testName:
-      "should fail to update thing's schema when response has some error",
+    testName: "should fail to update thing's schema when response has some error",
     amqpOptions: {
       responseMessage: {
         id: mockThing.id,
@@ -168,8 +166,7 @@ const updateConfigUseCases = [
     },
   },
   {
-    testName:
-      "should fail to update thing's config when failed to send command to message broker",
+    testName: "should fail to update thing's config when failed to send command to message broker",
     amqpOptions: {
       responseMessage: {
         id: mockThing.id,
@@ -199,8 +196,7 @@ const getDataUseCases = [
     testName: 'should request for data when there is no error at all',
   },
   {
-    testName:
-      'should fail to request for data when unable to publish the request message',
+    testName: 'should fail to request for data when unable to publish the request message',
     amqpOptions: {
       publishErr: errors.publishMessage,
     },
@@ -213,8 +209,7 @@ const setDataUseCases = [
     testName: "should update thing's data when there is no error at all",
   },
   {
-    testName:
-      "should fail to update thing's data when unable to publish the update message",
+    testName: "should fail to update thing's data when unable to publish the update message",
     amqpOptions: {
       publishErr: errors.publishMessage,
     },
@@ -242,8 +237,7 @@ const onUseCases = [
     callback: jest.fn(),
   },
   {
-    testName:
-      'should fail to register listener when unable to subscribe on events',
+    testName: 'should fail to register listener when unable to subscribe on events',
     event: 'data',
     amqpOptions: {
       subscribeErr: errors.subscribeTo,
