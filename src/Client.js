@@ -204,7 +204,7 @@ class Client {
   isValidEvent(event) {
     // Regex to check if event follows the pattern device.<thingId>.data.(request|update)
     const dataRegex = /device\.([a-f0-9]{16})\.data\.(request|update)/;
-    return dataRegex.test(event) || event === 'data';
+    return dataRegex.test(event) || event === 'data' || event === 'device.config.updated';
   }
 
   async registerConsumers() {
