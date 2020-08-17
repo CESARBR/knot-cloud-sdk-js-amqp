@@ -29,22 +29,9 @@ class Client {
         }
       }
     };
-    await this.amqp.subscribeTo(
-      resp.name,
-      resp.type,
-      resp.key,
-      queue,
-      handler,
-      { consumerTag }
-    );
+    await this.amqp.subscribeTo(resp.name, resp.type, resp.key, queue, handler, { consumerTag });
     try {
-      await this.amqp.publishMessage(
-        req.name,
-        req.type,
-        req.key,
-        payload,
-        options
-      );
+      await this.amqp.publishMessage(req.name, req.type, req.key, payload, options);
     } catch (err) {
       await this.amqp.unsubscribeConsumer(consumerTag);
       throw err;
@@ -53,13 +40,7 @@ class Client {
 
   async sendRequest(req, resp, message) {
     return new Promise((resolve, reject) =>
-      this.subscribeToResponse(
-        resolve,
-        reject,
-        req,
-        resp,
-        message
-      ).catch((err) => reject(err))
+      this.subscribeToResponse(resolve, reject, req, resp, message).catch((err) => reject(err))
     );
   }
 
@@ -205,14 +186,10 @@ class Client {
       });
     }
 
-    return this.amqp.subscribeTo(
-      exchange.name,
-      exchange.type,
-      event,
-      queue,
-      callback,
-      { ...options, consumerTag }
-    );
+    return this.amqp.subscribeTo(exchange.name, exchange.type, event, queue, callback, {
+      ...options,
+      consumerTag,
+    });
   }
 
   async unsubscribe(event) {
@@ -246,9 +223,7 @@ class Client {
   }
 
   async clearConsumers() {
-    await Promise.all(
-      this.consumers.map(({ tag }) => this.amqp.unsubscribeConsumer(tag))
-    );
+    await Promise.all(this.consumers.map(({ tag }) => this.amqp.unsubscribeConsumer(tag)));
     this.consumers = [];
   }
 }
