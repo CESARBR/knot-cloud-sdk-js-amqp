@@ -251,19 +251,24 @@ list of things:
 */
 ```
 
-### updateSchema(id, schema): Promise&lt;Object&gt;
+### updateConfig(id, config): Promise&lt;Object&gt;
 
-Updates the thing's schema.
+Updates the thing's config.
 
 #### Arguments
 - `id` **String** Thing's ID.
-- `schema` **Array** Objects in the following format:
+- `config` **Array** Objects in the following format:
   * `sensorId` **Number** Sensor ID.
-  * `typeId` **Number** Semantic value type (voltage, current, temperature, etc).
-  * `valueType` **Number** Data value type (boolean, integer, etc).
-  * `unit` **Number** Sensor unit (V, A, W, W, etc).
-  * `name` **String** Sensor name.
-
+  * `schema` **JSON Object** Schema definition, formed by:
+    * `typeId` **Number** Semantic value type (voltage, current, temperature, etc).
+    * `valueType` **Number** Data value type (boolean, integer, etc).
+    * `unit` **Number** Sensor unit (V, A, W, W, etc).
+    * `name` **String** Sensor name.
+  * `event` **JSON Object** Event definition, formed by:
+    * `change` **Boolean** Enable sending sensor data when its value changes
+    * `timeSec` **Number - Optional** Time interval in seconds that indicates when data must be sent to the cloud
+    * `lowerThreshold` **(Depends on schema's valueType) - Optional** Send data to the cloud if it's lower than this threshold
+    * `upperThreshold` **(Depends on schema's valueType) - Optional** Send data to the cloud if it's upper than this threshold
 #### Result
 - `device` **Object** JSON object, containing thing's metadata.
 
@@ -276,21 +281,29 @@ const client = new Client(config);
 const thing = {
   id: 'abcdef1234567890',
   name: 'my-thing',
-  schema: [{
+  config: [{
     sensorId: 0,
-    typeId: 65521,
-    valueType: 3,
-    unit: 0,
-    name: 'bool-sensor',
-  }],
+    schema: {
+      typeId: 65521,
+      valueType: 3,
+      unit: 0,
+      name: 'bool-sensor',
+    },
+    event: {
+      change: true,
+      timeSec: 10,
+      lowerThreshold: 1000,
+      upperThreshold: 3000,
+    }
+  }]
 };
 
 const main = async () => {
   try {
     await client.connect();
     await client.register(thing.id, thing.name);
-    const response = await client.updateSchema(thing.id, thing.schema);
-    console.log('schema successfully updated:', response);
+    const response = await client.updateConfig(thing.id, thing.config);
+    console.log('config successfully updated:', response);
     await client.close();
   } catch (err) {
     console.error(err);
@@ -300,19 +313,25 @@ const main = async () => {
 main();
 
 /*
-schema successfully updated:
+config successfully updated:
 {
   id: 'abcdef1234567890',
   name: 'my-thing',
-  schema: [
-    {
-      sensorId: 0,
+  config: [{
+    sensorId: 0,
+    schema: {
       typeId: 65521,
       valueType: 3,
       unit: 0,
-      name: 'bool-sensor'
+      name: 'bool-sensor',
+    },
+    event: {
+      change: true,
+      timeSec: 10,
+      lowerThreshold: 1000,
+      upperThreshold: 3000,
     }
-  ]
+  }]
 }
 */
 ```
