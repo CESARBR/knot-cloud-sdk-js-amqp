@@ -8,22 +8,21 @@ const mockToken = 'my-authorization-token';
 const mockThing = {
   id: 'abcdef1234568790',
   name: 'my-device',
-  schema: [
-    {
-      sensorId: 0,
-      typeId: 65521,
-      valueType: 3,
-      unit: 0,
-      name: 'bool-sensor',
-    },
-  ],
   config: [
     {
       sensorId: 0,
-      change: true,
-      timeSec: 10,
-      lowerThreshold: 1000,
-      upperThreshold: 3000,
+      schema: {
+        typeId: 65521,
+        valueType: 3,
+        unit: 0,
+        name: 'bool-sensor',
+      },
+      event: {
+        change: true,
+        timeSec: 10,
+        lowerThreshold: 1000,
+        upperThreshold: 3000,
+      },
     },
   ],
 };
