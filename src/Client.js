@@ -101,16 +101,6 @@ class Client {
     return this.sendRequest(req, resp, msg);
   }
 
-  async updateSchema(id, schemaList) {
-    const msg = {
-      payload: { id, schema: schemaList },
-      options: { headers: this.headers },
-    };
-    const req = this.api.getDefinition(this.api.UPDATE_SCHEMA);
-    const resp = this.api.getResponseDefinition(this.api.UPDATE_SCHEMA);
-    return this.sendRequest(req, resp, msg);
-  }
-
   async updateConfig(id, configList) {
     const msg = {
       payload: { id, config: configList },

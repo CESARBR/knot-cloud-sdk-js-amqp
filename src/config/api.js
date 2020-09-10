@@ -15,9 +15,7 @@ export const REGISTER_DEVICE = 'device.register';
 export const REGISTER_DEVICE_RESPONSE = 'device.registered';
 export const UNREGISTER_DEVICE = 'device.unregister';
 export const UNREGISTER_DEVICE_RESPONSE = 'device.unregistered';
-export const UPDATE_SCHEMA = 'device.schema.sent';
 export const UPDATE_CONFIG = 'device.config.sent';
-export const UPDATE_SCHEMA_RESPONSE = 'device.schema.updated';
 export const UPDATE_CONFIG_RESPONSE = 'device.config.updated';
 export const AUTH_DEVICE = 'device.auth';
 export const LIST_DEVICES = 'device.list';
@@ -32,8 +30,6 @@ const exchangeDefinitions = {
       REGISTER_DEVICE_RESPONSE,
       UNREGISTER_DEVICE,
       UNREGISTER_DEVICE_RESPONSE,
-      UPDATE_SCHEMA,
-      UPDATE_SCHEMA_RESPONSE,
       UPDATE_CONFIG,
       UPDATE_CONFIG_RESPONSE,
       REQUEST_DATA,
@@ -53,7 +49,6 @@ const exchangeDefinitions = {
 const responseKeys = {
   [REGISTER_DEVICE]: REGISTER_DEVICE_RESPONSE,
   [UNREGISTER_DEVICE]: UNREGISTER_DEVICE_RESPONSE,
-  [UPDATE_SCHEMA]: UPDATE_SCHEMA_RESPONSE,
   [UPDATE_CONFIG]: UPDATE_CONFIG_RESPONSE,
 };
 
