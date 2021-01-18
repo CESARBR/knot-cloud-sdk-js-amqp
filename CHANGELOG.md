@@ -1,3 +1,9 @@
+# [3.0.1](https://github.com/CESARBR/knot-cloud-sdk-js-amqp/compare/v3.0.0...v3.0.1)
+
+## Bug Fixes
+
+  - Fix vulnerability issues
+
 # [3.0.0](https://github.com/CESARBR/knot-cloud-sdk-js-amqp/compare/v2.2.0...v3.0.0)
 
 ## Feature
