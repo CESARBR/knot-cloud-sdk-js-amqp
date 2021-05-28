@@ -1,11 +1,12 @@
 import uniqid from 'uniqid';
 
-// Based on websocket interface: https://github.com/CESARBR/knot-cloud-websocket#methods
+// Based on AMQP interface: https://github.com/CESARBR/knot-babeltower/blob/master/docs/events.md
 class Client {
-  constructor(token, amqp, api) {
-    this.amqp = amqp;
-    this.api = api;
+  constructor(token, amqp, auth, api) {
     this.headers = { Authorization: token };
+    this.amqp = amqp;
+    this.auth = auth;
+    this.api = api;
     this.userKey = uniqid();
     this.consumers = [];
   }
@@ -159,7 +160,7 @@ class Client {
     const exchange =
       event === 'data'
         ? {
-            name: this.api.DATA_PUBLISHED_EXCHANGE,
+            name: await this.getDataExchange(),
             type: this.api.DATA_PUBLISHED_EXCHANGE_TYPE,
           }
         : {
@@ -180,6 +181,11 @@ class Client {
       ...options,
       consumerTag,
     });
+  }
+
+  async getDataExchange() {
+    const { id } = await this.auth.createSession(this.headers.Authorization);
+    return `data.${id}.published`;
   }
 
   async unsubscribe(event) {
