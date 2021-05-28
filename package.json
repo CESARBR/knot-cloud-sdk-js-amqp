@@ -41,6 +41,7 @@
     "lint"
   ],
   "dependencies": {
+    "@cesarbr/knot-cloud-sdk-js-authenticator": "^2.2.0",
     "amqp-connection-manager": "^3.2.0",
     "amqplib": "^0.5.5",
     "uniqid": "^5.2.0"
