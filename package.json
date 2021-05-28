@@ -43,7 +43,7 @@
   "dependencies": {
     "@cesarbr/knot-cloud-sdk-js-authenticator": "^2.2.0",
     "amqp-connection-manager": "^3.2.0",
-    "amqplib": "^0.5.5",
+    "amqplib": "^0.8.0",
     "uniqid": "^5.2.0"
   }
 }
