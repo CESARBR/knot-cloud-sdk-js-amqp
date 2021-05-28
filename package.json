@@ -1,6 +1,6 @@
 {
   "name": "@cesarbr/knot-cloud-sdk-js-amqp",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "description": "KNoT Cloud AMPQ SDK for NodeJS ",
   "repository": {
     "type": "git",
