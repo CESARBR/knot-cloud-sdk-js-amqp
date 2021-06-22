@@ -12,17 +12,24 @@ npm install --save @cesarbr/knot-cloud-sdk-js-amqp
 
 ### Run
 
-`KNoT Cloud AMQP` communicates with a RabbitMQ broker at amqp://&lt;username&gt;:&lt;password&gt;@&lt;hostname&gt;:&lt;port&gt; using &lt;token&gt; as credential to execute the operations. Replace this address with your broker instance and the credentials with valid ones.
+`KNoT Cloud AMQP` communicates with a RabbitMQ broker at amqp://&lt;username&gt;:&lt;password&gt;@&lt;hostname&gt;:&lt;port&gt; using &lt;token&gt; as credential to execute the operations. Replace this address with your broker instance and the credentials with valid ones. In addition, the library should be configured with the HTTP address of the API Gateway (knot-babeltower).
 
 ```javascript
-const Client = require("@cesarbr/knot-cloud-sdk-js-amqp");
+const Client = require('@cesarbr/knot-cloud-sdk-js-amqp');
 
 const config = {
-  hostname: 'broker.knot.cloud',
-  port: 5672,
-  username: 'knot',
-  password: 'knot',
-  token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', // this is not a valid token!
+  amqp: {
+    hostname: 'broker.knot.cloud',
+    port: 5672,
+    username: 'knot',
+    password: 'knot',
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...', // this is not a valid token!
+  },
+  http: {
+    hostname: 'api.knot.cloud', // API Gateway address
+    port: 80,
+    protocol: 'http',
+  },
 };
 
 const client = new Client(config);
@@ -34,7 +41,7 @@ const thing = {
 
 const main = async () => {
   try {
-    await client.connect()
+    await client.connect();
     const response = await client.register(thing.id, thing.name);
     console.log('register response:', response);
     await client.close();
@@ -53,12 +60,18 @@ main();
 Create a client object that will connect to a KNoT Cloud RabbitMQ instance.
 
 #### Arguments
-- `config` **Object** JSON object with broker details.
-  - `hostname` **String** (Optional) RabbitMQ instance hostname. Default: `'localhost'`.
-  - `port` **Number** (Optional) RabbitMQ instance port. Default: 5672.
-  - `username` **String** (Optional) RabbitMQ instance username. Default: `'knot'`.
-  - `password` **String** (Optional) RabbitMQ instance password. Default: `'knot'`.
-  - `token` **String** (Required) KNoT Cloud user token.
+
+- `config` **Object** JSON object with the configuration.
+  - `amqp` **Object** JSON object with broker properties.
+    - `hostname` **String** (Optional) RabbitMQ instance hostname. Default: `'localhost'`.
+    - `port` **Number** (Optional) RabbitMQ instance port. Default: 5672.
+    - `username` **String** (Optional) RabbitMQ instance username. Default: `'knot'`.
+    - `password` **String** (Optional) RabbitMQ instance password. Default: `'knot'`.
+    - `token` **String** (Required) KNoT Cloud user token.
+  - `http` **Object** JSON object with API Gateway configuration.
+    - `hostname` **String** API Gateway hostname. Default: `'localhost'`.
+    - `port` **Number** API Gateway port. Default: 80.
+    - `protocol` **Number** API Gateway protocol. Default: `'http'`.
 
 #### Example
 
@@ -83,10 +96,10 @@ const main = async () => {
   try {
     await client.connect();
     console.log('successfully connected!');
-  } catch(err) {
+  } catch (err) {
     console.error(err);
   }
-}
+};
 
 main();
 ```
@@ -108,7 +121,7 @@ const main = async () => {
     await client.close();
     console.log('connection successfully closed');
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
 };
 
@@ -120,12 +133,14 @@ main();
 Registers a new thing. Receives an object containing the registered thing's ID.
 
 #### Arguments
+
 - `id` **String** Thing's ID.
 - `name` **String** Thing's name.
 
 #### Result
+
 - `device` **Object** JSON object in the following format:
-  * `id` **String** Thing's ID.
+  - `id` **String** Thing's ID.
 
 #### Example
 
@@ -166,13 +181,16 @@ thing successfully registered:
 Removes a thing from the cloud.
 
 #### Arguments
+
 - `id` **String** Thing's ID.
 
 #### Result
+
 - `device` **Object** JSON object in the following format:
-  * `id` **String** Thing's ID.
+  - `id` **String** Thing's ID.
 
 #### Example
+
 ```javascript
 const Client = require('@cesarbr/knot-cloud-sdk-js-amqp');
 
@@ -210,6 +228,7 @@ thing successfully unregistered:
 List all things registered on cloud.
 
 #### Result
+
 - `devices` **Object** JSON object, containing set of things on cloud.
 
 #### Example
@@ -256,23 +275,27 @@ list of things:
 Updates the thing's config.
 
 #### Arguments
+
 - `id` **String** Thing's ID.
 - `config` **Array** Objects in the following format:
-  * `sensorId` **Number** Sensor ID.
-  * `schema` **JSON Object** Schema definition, formed by:
-    * `typeId` **Number** Semantic value type (voltage, current, temperature, etc).
-    * `valueType` **Number** Data value type (boolean, integer, etc).
-    * `unit` **Number** Sensor unit (V, A, W, W, etc).
-    * `name` **String** Sensor name.
-  * `event` **JSON Object** Event definition, formed by:
-    * `change` **Boolean** Enable sending sensor data when its value changes
-    * `timeSec` **Number - Optional** Time interval in seconds that indicates when data must be sent to the cloud
-    * `lowerThreshold` **(Depends on schema's valueType) - Optional** Send data to the cloud if it's lower than this threshold
-    * `upperThreshold` **(Depends on schema's valueType) - Optional** Send data to the cloud if it's upper than this threshold
+  - `sensorId` **Number** Sensor ID.
+  - `schema` **JSON Object** Schema definition, formed by:
+    - `typeId` **Number** Semantic value type (voltage, current, temperature, etc).
+    - `valueType` **Number** Data value type (boolean, integer, etc).
+    - `unit` **Number** Sensor unit (V, A, W, W, etc).
+    - `name` **String** Sensor name.
+  - `event` **JSON Object** Event definition, formed by:
+    - `change` **Boolean** Enable sending sensor data when its value changes
+    - `timeSec` **Number - Optional** Time interval in seconds that indicates when data must be sent to the cloud
+    - `lowerThreshold` **(Depends on schema's valueType) - Optional** Send data to the cloud if it's lower than this threshold
+    - `upperThreshold` **(Depends on schema's valueType) - Optional** Send data to the cloud if it's upper than this threshold
+
 #### Result
+
 - `device` **Object** JSON object, containing thing's metadata.
 
 #### Example
+
 ```javascript
 const Client = require('@cesarbr/knot-cloud-sdk-js-amqp');
 
@@ -281,21 +304,23 @@ const client = new Client(config);
 const thing = {
   id: 'abcdef1234567890',
   name: 'my-thing',
-  config: [{
-    sensorId: 0,
-    schema: {
-      typeId: 65521,
-      valueType: 3,
-      unit: 0,
-      name: 'bool-sensor',
+  config: [
+    {
+      sensorId: 0,
+      schema: {
+        typeId: 65521,
+        valueType: 3,
+        unit: 0,
+        name: 'bool-sensor',
+      },
+      event: {
+        change: true,
+        timeSec: 10,
+        lowerThreshold: 1000,
+        upperThreshold: 3000,
+      },
     },
-    event: {
-      change: true,
-      timeSec: 10,
-      lowerThreshold: 1000,
-      upperThreshold: 3000,
-    }
-  }]
+  ],
 };
 
 const main = async () => {
@@ -341,12 +366,14 @@ config successfully updated:
 Publishes thing's data.
 
 #### Arguments
+
 - `id` **String** Thing's ID.
 - `data` **Array** Data in the following format:
-  * `sensorId` **Number** Sensor ID.
-  * `value` **String|Boolean|Number** Sensor value.
+  - `sensorId` **Number** Sensor ID.
+  - `value` **String|Boolean|Number** Sensor value.
 
 #### Example
+
 ```javascript
 const Client = require('@cesarbr/knot-cloud-sdk-js-amqp');
 
@@ -392,6 +419,7 @@ data published successfully:
 Requests a thing to publish the current data value of the specified sensor(s).
 
 #### Arguments
+
 - `id` **String** Thing's ID.
 - `sensorIds` **Array** Sensor IDs to request data from.
 
@@ -437,10 +465,11 @@ data successfully requested:
 Requests a thing to updates the current data value of the specified sensor(s).
 
 #### Arguments
+
 - `id` **String** Device ID.
 - `data` **Array** Data items to be published, each one in the following format:
-  * `sensorId` **Number** Sensor ID.
-  * `value` **String|Boolean|Number** Sensor value.
+  - `sensorId` **Number** Sensor ID.
+  - `value` **String|Boolean|Number** Sensor value.
 
 #### Example
 
@@ -487,6 +516,7 @@ setData request successfully sent:
 Registers an event callback handler. See next section for details on events.
 
 #### Arguments
+
 - `name` **String** Event name.
 - `callback` **Function** Event callback handler.
 
@@ -512,8 +542,8 @@ const main = async () => {
     await Promise.all(
       [true, false, true].map((value) => {
         return client.publishData(thingId, [{ sensorId: 0, value }]);
-      },
-    ));
+      })
+    );
     await client.close();
   } catch (err) {
     console.error(err);
@@ -528,6 +558,7 @@ main();
 Registers an callback handler only for next event occurrence. See next section for details on events.
 
 #### Arguments
+
 - `name` **String** Event name.
 - `callback` **Function** Event callback handler.
 
@@ -572,8 +603,8 @@ Triggered when a thing publishes sensor data.
 
 - `id` **String** Thing's ID.
 - `data` **Array** Data objects in the following format:
-  * `sensorId` **Number** Sensor ID.
-  * `value` **String|Boolean|Number** Sensor value.
+  - `sensorId` **Number** Sensor ID.
+  - `value` **String|Boolean|Number** Sensor value.
 
 #### Example
 
@@ -619,8 +650,8 @@ Triggered when a request for things to update data is sent.
 
 - `id` **String** Thing's ID.
 - `data` **Array** Data objects in the following format:
-  * `sensorId` **Number** Sensor ID.
-  * `value` **String|Boolean|Number** Sensor value.
+  - `sensorId` **Number** Sensor ID.
+  - `value` **String|Boolean|Number** Sensor value.
 
 #### Example
 
